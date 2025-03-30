@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Notes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+      body {
+        background-color: #92b4d3;
+        font-family: Arial, sans-serif;
+      }
+      
+      .container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #5a91c0;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        color: white;
+      }
+      
+      h1 {
+        color: #1e4666;
+        margin-bottom: 30px;
+        font-size: 40px;
+        font-weight: bold;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+      
+      .note-textarea {
+        width: 100%;
+        height: 100px;
+        border-radius: 10px;
+        border: none;
+        padding: 10px;
+        resize: none;
+      }
+      
+      .btn-simpan {
+        background-color: #25c745;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+      
+      table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+      }
+      
+      th, td {
+        border: 1px solid white;
+        padding: 10px;
+        text-align: center;
+      }
+      
+      th {
+        background-color: #5a91c0;
+      }
+      
+      .btn-hapus {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      
+      .btn-edit {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        margin-left: 5px;
+      }
+      
+      .table-title {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container text-center">
+      <h1>Web Notes</h1>
+      
+      <form id="notes-form">
+        <h4>Tambahkan Catatan.</h4>
+        
+        <div class="row mb-3">
+          <div class="col-md-6 text-start">
+            <label for="name" class="form-label">Nama:</label>
+            <input
+              data-id
+              id="name"
+              type="text"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-6 text-start">
+            <label for="date" class="form-label">Tanggal:</label>
+            <input
+              data-id
+              id="date"
+              type="date"
+              class="form-control"
+              required
+            />
+          </div>
+        </div>
+        
+        <div class="mb-3 text-start">
+          <label for="note" class="form-label">Catatan Anda</label>
+          <textarea
+            data-id
+            id="note"
+            class="note-textarea"
+            required
+          ></textarea>
+        </div>
+        
+        <button type="submit" class="btn-simpan">Simpan</button>
+      </form>
+      
+      <div>
+        <h4 class="table-title">Daftar Catatan Anda</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Tanggal</th>
+              <th>Catatan</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody id="table-user">
+            <!-- Table data will be inserted here by JavaScript -->
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <button class="btn-hapus">Hapus</button>
+                <button class="btn-edit">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
