@@ -22,7 +22,7 @@ formulir.addEventListener("submit", (e) => {
   if (id == "") {
     // Tambah user
     axios
-      .post("http://localhost:5000/add-user", { name, date, note })
+      .post(`${BASE_URL}/add-user`, { name, date, note })
       .then(() => {
         // bersihin formnya
         elemen_name.value = "";
@@ -35,7 +35,7 @@ formulir.addEventListener("submit", (e) => {
       .catch((error) => console.log(error.message)); // <- Kalo ada error
   } else {
     axios
-      .put(`http://localhost:5000/edit-user/${id}`, { name, date, note })
+      .put(`${BASE_URL}/edit-user/${id}`, { name, date, note })
       .then(() => {
         // bersihin formnya
         elemen_name.dataset.id = "";
@@ -53,7 +53,7 @@ formulir.addEventListener("submit", (e) => {
 // GET User
 async function getUser() {
   try {
-    const { data } = await axios.get("http://localhost:5000/users");
+    const { data } = await axios.get(`${BASE_URL}/users`);
 
     const table = document.querySelector("#table-user");
     let tampilan = "";
@@ -91,7 +91,7 @@ function hapusUser() {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
       axios
-        .delete(`http://localhost:5000/delete-user/${id}`)
+        .delete(`${BASE_URL}/delete-user/${id}`)
         .then(() => getUser())
         .catch((error) => console.log(error));
     });
