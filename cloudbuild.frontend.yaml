@@ -6,8 +6,9 @@ steps:
       - app
       - deploy
       - app.yaml
+      - '--project=${PROJECT_ID}' # Menggunakan variabel lingkungan Cloud Build untuk project ID
       - '--quiet'
-    dir: 'fe'  # Ganti dengan direktori frontend yang berisi app.yaml dan file HTML kamu
+    dir: 'fe' # Ganti dengan direktori frontend yang berisi app.yaml dan file HTML kamu
 
 options:
-  logging: CLOUD_LOGGING_ONLY  # Opsional: hanya mencatat log ke Google Cloud Logging
+  logging: CLOUD_LOGGING_ONLY # Opsional: hanya mencatat log ke Google Cloud Logging
