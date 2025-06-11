@@ -57,4 +57,12 @@ async function deleteUser(req, res) {
   }
 }
 
-export { getUsers, createUser, updateUser, deleteUser };
+// Tambahkan semua fungsi autentikasi yang belum ada (login, register, logout)
+export { 
+  getUsers, 
+  register,         // <-- Tambahkan ini
+  login,            // <-- Tambahkan ini
+  logout,           // <-- Tambahkan ini
+  updateUser, 
+  deleteUser 
+};
