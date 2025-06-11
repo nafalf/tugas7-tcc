@@ -1,7 +1,7 @@
 import User from "../models/UserModel.js";
 
 // GET (Ngambil Data)
-async function getUser(req, res) {
+async function getUsers(req, res) {
   try {
     const result = await User.findAll();
     return res.status(200).json(result);
