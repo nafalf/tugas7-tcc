@@ -2,208 +2,190 @@ import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// GET (Ngambil Data)
-async function getUsers(req, res) {
+/**
+ * Mengambil semua data user (hanya username dan id).
+ */
+export async function getUsers(req, res) {
   try {
-    const result = await User.findAll();
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error.message);
-  }
-}
-
-// CREATE
-async function createUser(req, res) {
-  try {
-    const inputResult = req.body;
-    const result = await User.create(inputResult);
-    return res.status(201).json(result);
-  } catch (error) {
-    console.log(error.message);
-  }
-}
-
-async function updateUser(req, res) {
-  try {
-    const { id } = req.params;
-    const inputResult = req.body;
-
-    const user = await User.findByPk(id);
-    console.log(user);
-    if (!user) {
-      return res.status(404).json({ msg: "User not found!" });
-    }
-
-    await User.update(inputResult, {
-      where: { id: req.params.id },
+    const users = await User.findAll({
+      attributes: ['id_user', 'username']
     });
-    return res.status(201).json({ msg: "User Updated" });
+    return res.status(200).json(users);
   } catch (error) {
-    console.log(error.message);
+    console.error("Error saat mengambil users:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 }
 
-async function deleteUser(req, res) {
+/**
+ * Mendaftarkan user baru dengan password yang di-hash.
+ */
+export async function register(req, res) {
+  const { username, password } = req.body;
+
+  // Validasi input
+  if (!username || !password) {
+    return res.status(400).json({ msg: "Username dan password tidak boleh kosong" });
+  }
+
   try {
-    const { id } = req.params;
+    // Hash password
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ msg: "User not found!" });
-    }
+    // Simpan user baru ke database
+    await User.create({
+      username: username,
+      password: hashedPassword,
+    });
 
-    await User.destroy({ where: { id } });
-    return res.status(201).json({ msg: "User Deleted" });
+    // Kirim respon sukses
+    return res.status(201).json({ msg: "Registrasi Berhasil" });
   } catch (error) {
-    console.log(error.message);
+    console.error("Error saat registrasi:", error.message);
+    // Kemungkinan besar username sudah ada
+    return res.status(409).json({ msg: "Username sudah digunakan" });
   }
 }
 
-// Fungsi LOGIN
-async function login(req, res) {
+/**
+ * Login user menggunakan username dan password.
+ */
+export async function login(req, res) {
   try {
-    // Ambil email dan password dari request body,
-    // karena kita login pake email & password
-    const { email, password } = req.body;
-
-    // Cek apakah email terdaftar di db
+    // 1. Cari user berdasarkan username
     const user = await User.findOne({
-      where: { email: email },
+      where: { username: req.body.username },
     });
 
-    // Kalo email ada (terdaftar)
-    if (user) {
-      // Konversi data user dari JSON ke dalam bentuk object
-      const userPlain = user.toJSON(); // Konversi ke object
-
-      // Disini kita mau mengcopy isi dari variabel userPlain ke variabel baru namanya safeUserData
-      // Tapi di sini kita gamau copy semuanya, kita gamau copy password sama refresh_token karena itu sensitif
-      const { password: _, refresh_token: __, ...safeUserData } = userPlain;
-
-      // Ngecek apakah password sama kaya yg ada di DB
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      // Kalau password benar, artinya berhasil login
-      if (isPasswordValid) {
-        // Membuat access token dengan masa berlaku 30 detik
-        const accessToken = jwt.sign(
-          safeUserData, // <- Payload yang akan disimpan di token
-          process.env.ACCESS_TOKEN_SECRET, // <- Secret key untuk verifikasi
-          { expiresIn: "15m" } // <- Masa berlaku token
-        );
-
-        // Membuat refresh token dengan masa berlaku 1 hari
-        const refreshToken = jwt.sign(
-          safeUserData,
-          process.env.REFRESH_TOKEN_SECRET,
-          { expiresIn: "1d" }
-        );
-
-        // Update refresh token di database untuk user yang login
-        await User.update(
-          { refresh_token: refreshToken },
-          {
-            where: { id: user.id },
-          }
-        );
-
-        // Masukkin refresh token ke cookie
-        res.cookie("refreshToken", refreshToken, {
-          // httpOnly:
-          // - `true`: Cookie tidak bisa diakses via JavaScript (document.cookie)
-          // - Mencegah serangan XSS (Cross-Site Scripting)
-          // - Untuk development bisa `false` agar bisa diakses via console
-          httpOnly: false, // <- Untuk keperluan PRODUCTION wajib true
-
-          // sameSite:
-          // - "strict": Cookie, hanya dikirim untuk request SAME SITE (domain yang sama)
-          // - "lax": Cookie dikirim untuk navigasi GET antar domain (default)
-          // - "none": Cookie dikirim untuk CROSS-SITE requests (butuh secure:true)
-          sameSite: "none", // <- Untuk API yang diakses dari domain berbeda
-
-          // maxAge:
-          // - Masa aktif cookie dalam milidetik (1 hari = 24x60x60x1000)
-          // - Setelah waktu ini, cookie akan otomatis dihapus browser
-          maxAge: 24 * 60 * 60 * 1000,
-
-          // secure:
-          // - `true`: Cookie hanya dikirim via HTTPS
-          // - Mencegah MITM (Man-in-the-Middle) attack
-          // - WAJIB `true` jika sameSite: "none"
-          secure: true,
-        });
-
-        // Kirim respons berhasil (200)
-        return res.status(200).json({
-          status: "Success",
-          message: "Login Berhasil",
-          data: safeUserData, // <- Data user tanpa informasi sensitif
-          accessToken,
-        });
-      } else {
-        // Kalau password salah, masuk ke catch, kasi message "Password atau email salah" (400)
-        throw new ErrorWithStatusCode("Password atau email salah", 400);
-      }
-    } else {
-      // Kalau email salah, masuk ke catch, kasi message "Password atau email salah" (400)
-      throw new ErrorWithStatusCode("Password atau email salah", 400);
+    // Jika user tidak ditemukan
+    if (!user) {
+      return res.status(404).json({ msg: "Username tidak ditemukan" });
     }
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      status: "Error",
-      message: error.message,
+
+    // 2. Bandingkan password yang diinput dengan yang ada di database
+    const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
+
+    // Jika password tidak cocok
+    if (!isPasswordValid) {
+      return res.status(400).json({ msg: "Password salah" });
+    }
+
+    // 3. Jika password cocok, buat token
+    const userPayload = {
+      id_user: user.id_user,
+      username: user.username,
+    };
+
+    const accessToken = jwt.sign(userPayload, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '20m', // Token berlaku selama 20 menit
     });
+
+    const refreshToken = jwt.sign(userPayload, process.env.REFRESH_TOKEN_SECRET, {
+      expiresIn: '1d', // Token berlaku selama 1 hari
+    });
+
+    // 4. Simpan refresh token ke database
+    await User.update({ refresh_token: refreshToken }, {
+      where: { id_user: user.id_user }
+    });
+
+    // 5. Kirim refresh token sebagai http-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 hari
+      // Untuk production di GCP (HTTPS), tambahkan secure: true dan sameSite: 'none'
+      // secure: true,
+      // sameSite: 'none'
+    });
+
+    // 6. Kirim access token sebagai JSON
+    return res.json({ accessToken });
+
+  } catch (error) {
+    console.error("Error saat login:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 }
 
-// Fungsi LOGOUT
-async function logout(req, res) {
+/**
+ * Logout user dengan menghapus refresh token.
+ */
+export async function logout(req, res) {
   try {
-    // ngambil refresh token di cookie
     const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return res.sendStatus(204); // No content, tidak perlu diapa-apakan
 
-    // Ngecek ada ga refresh tokennya, kalo ga ada kirim status code 401
-    if (!refreshToken)
-      throw new ErrorWithStatusCode("Refresh token tidak ada", 401);
-
-    // Kalau ada, cari user berdasarkan refresh token tadi
     const user = await User.findOne({
       where: { refresh_token: refreshToken },
     });
 
-    // Kalau user gaada, kirim status code 401
-    if (!user.refresh_token)
-      throw new ErrorWithStatusCode("User tidak ditemukan", 401);
+    // Jika user dengan token tsb tidak ada, tidak perlu diapa-apakan
+    if (!user) return res.sendStatus(204);
 
-    // Kalau user ketemu (ada), ambil user id
-    const userId = user.id;
-
-    // Hapus refresh token dari DB berdasarkan user id tadi
-    await User.update({ refresh_token: null }, { where: { id: userId } });
-
-    // Ngehapus refresh token yg tersimpan di cookie
-    res.clearCookie("refreshToken");
-
-    // Kirim respons berhasil (200)
-    return res.status(200).json({
-      status: "Success",
-      message: "Logout Berhasil",
+    // Hapus refresh token dari database
+    await User.update({ refresh_token: null }, {
+      where: { id_user: user.id_user }
     });
+
+    // Hapus cookie dari browser
+    res.clearCookie('refreshToken');
+    return res.status(200).json({ msg: "Logout berhasil" });
   } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      status: "Error",
-      message: error.message,
-    });
+    console.error("Error saat logout:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 }
 
+/*
+  CATATAN: Fungsi createUser, updateUser, dan deleteUser di bawah ini
+  adalah versi sederhana. Sebaiknya disesuaikan lagi untuk keamanan,
+  misalnya updateUser tidak boleh mengubah username, dll.
+*/
 
-// Tambahkan semua fungsi autentikasi yang belum ada (login, register, logout)
-export { 
-  getUsers, 
-  createUser, 
-  login,            // <-- Tambahkan ini
-  logout,           // <-- Tambahkan ini
-  updateUser, 
-  deleteUser 
-};
+export async function createUser(req, res) {
+  try {
+    // Fungsi ini tidak aman untuk registrasi karena tidak hash password
+    // Gunakan fungsi register()
+    const inputResult = req.body;
+    const result = await User.create(inputResult);
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Error saat create user:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+  }
+}
+
+export async function updateUser(req, res) {
+  try {
+    const { id } = req.params;
+    const inputResult = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found!" });
+    }
+
+    await User.update(inputResult, { where: { id_user: id } }); // sesuaikan dengan primary key `id_user`
+    return res.status(200).json({ msg: "User Updated" });
+  } catch (error) {
+    console.error("Error saat update user:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+  }
+}
+
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found!" });
+    }
+
+    await User.destroy({ where: { id_user: id } }); // sesuaikan dengan primary key `id_user`
+    return res.status(200).json({ msg: "User Deleted" });
+  } catch (error) {
+    console.error("Error saat delete user:", error.message);
+    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+  }
+}
