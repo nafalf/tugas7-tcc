@@ -1,9 +1,15 @@
-runtime: python39  # Menggunakan runtime standar untuk hosting HTML statis
-service: fe-207  # Nama layanan App Engine, bisa diubah sesuai kebutuhan
-instance_class: F1  # Kelas instance untuk App Engine (F1 adalah kelas standar yang ringan)
+runtime: python39
+service: fe-207
+instance_class: F1
 
 handlers:
-  # Halaman login
+  # ================= PERUBAHAN UTAMA DI SINI =================
+  # Arahkan root URL (halaman utama) ke login.html
+  - url: /
+    static_files: login.html
+    upload: login.html
+
+  # Pastikan halaman login.html itu sendiri masih bisa diakses
   - url: /login.html
     static_files: login.html
     upload: login.html
@@ -13,22 +19,18 @@ handlers:
     static_files: register.html
     upload: register.html
 
-  # Halaman utama / dashboard
+  # Halaman utama / dashboard (setelah login)
+  # Aturan ini PENTING agar window.location.href = 'index.html' tetap berfungsi
   - url: /index.html
     static_files: index.html
     upload: index.html
 
-  # JS files
+  # Aturan untuk file-file JavaScript di dalam folder js
   - url: /js/(.*)
     static_files: js/\1
     upload: js/(.*)
 
-  # Arahkan root ke index.html (dashboard)
-  - url: /
-    static_files: index.html
-    upload: index.html
-
-  # Backup handler (jika ada file tambahan)
+  # Backup handler jika ada file lain
   - url: /(.*)
     static_files: \1
     upload: (.*)
