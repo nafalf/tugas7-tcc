@@ -3,12 +3,34 @@ service: fe-207  # Nama layanan App Engine, bisa diubah sesuai kebutuhan
 instance_class: F1  # Kelas instance untuk App Engine (F1 adalah kelas standar yang ringan)
 
 handlers:
+  # Halaman login
+  - url: /login.html
+    static_files: login.html
+    upload: login.html
+
+  # Halaman register
+  - url: /register.html
+    static_files: register.html
+    upload: register.html
+
+  # Halaman utama / dashboard
+  - url: /index.html
+    static_files: index.html
+    upload: index.html
+
+  # JS files
+  - url: /js/(.*)
+    static_files: js/\1
+    upload: js/(.*)
+
+  # Arahkan root ke index.html (dashboard)
   - url: /
     static_files: index.html
     upload: index.html
 
+  # Backup handler (jika ada file tambahan)
   - url: /(.*)
     static_files: \1
     upload: (.*)
 
-default_expiration: "1h"  # Waktu cache default
+default_expiration: "1h"

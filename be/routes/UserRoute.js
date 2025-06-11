@@ -1,16 +1,38 @@
-import express from "express";
+import express from "express"
+import { createNotes, deleteNotes, getNotes, updateNotes } from "../controller/NotesController.js";
 import {
-  createUser,
-  deleteUser,
-  getUser,
+  getUsers,
+  register,
+  login,
+  logout,
   updateUser,
-} from "../controller/UserController.js";
+  deleteUser,
+} from "../controller/userController.js";
 
-const router = express.Router();
+import {
+  refreshToken,
+} from "../controller/RefreshToken.js";
 
-router.get("/users", getUser);
-router.post("/add-user", createUser);
-router.put("/edit-user/:id", updateUser);
-router.delete("/delete-user/:id", deleteUser);
+import { verifyToken } from "../middleware/VerifyToken.js";
+
+
+const router =  express.Router()
+
+
+router.get("/notes", getNotes);
+router.post("/add-notes",verifyToken, createNotes);
+router.put("/edit-notes/:id",verifyToken, updateNotes);
+router.delete("/delete-notes/:id", verifyToken, deleteNotes);
+
+//endpoint table user
+router.get("/users", getUsers);
+router.post("/login", login);
+router.post("/register", register);
+router.put("/profile/update/:username", verifyToken, updateUser);
+router.delete("/profile/delete/:username", verifyToken, deleteUser);
+router.delete("/logout", logout);
+
+// REFRESH TOKEN
+router.get("/profile/:username", refreshToken);
 
 export default router;

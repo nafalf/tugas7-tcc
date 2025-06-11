@@ -1,8 +1,8 @@
-GET http://localhost:5000/users
+GET http://localhost:3000/users
 
 
 ###
-POST http://localhost:5000/add-users
+POST http://localhost:3000/add-users
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:5000/users/1
+PUT http://localhost:3000/users/1
 Content-Type: application/json
 
 {
@@ -20,4 +20,4 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:5000/users/2
+DELETE http://localhost:3000/users/2
