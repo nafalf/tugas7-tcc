@@ -7,7 +7,7 @@ import {
   logout,
   updateUser,
   deleteUser,
-} from "../controller/userController.js";
+} from "../controller/UserController.js";
 
 import {
   refreshToken,
