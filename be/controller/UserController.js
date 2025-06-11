@@ -1,7 +1,6 @@
 import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { compareArrays, ErrorWithStatusCode } from "../utils/index.js";
 
 // GET (Ngambil Data)
 async function getUsers(req, res) {
