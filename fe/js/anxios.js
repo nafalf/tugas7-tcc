@@ -1,15 +1,10 @@
-
-
-
-const baseURL = "https://notes-syifa194-797713225706.us-central1.run.app";
+const baseURL = "https://notes-be207-797713225706.us-central1.run.app";
 window.BASE_URL = baseURL;
 
 const axiosJWT = axios.create({
   baseURL: baseURL,
   withCredentials: true
 });
-
-
 
 // Interceptor untuk refresh token otomatis
 axiosJWT.interceptors.request.use(
